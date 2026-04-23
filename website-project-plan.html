@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Project Planning — Master Document Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #131316;
+    --bg3: #1a1a1f;
+    --surface: #1e1e24;
+    --surface2: #25252d;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.15);
+    --text: #f0efe8;
+    --text-muted: #8a8a96;
+    --text-faint: #4a4a56;
+    --accent-purple: #7f77dd;
+    --accent-blue: #378add;
+    --accent-teal: #1d9e75;
+    --accent-amber: #ef9f27;
+    --accent-coral: #d85a30;
+    --accent-green: #639922;
+    --accent-gray: #888780;
+    --accent-pink: #d4537e;
+    --glow-purple: rgba(127,119,221,0.12);
+    --glow-blue: rgba(55,138,221,0.12);
+    --glow-teal: rgba(29,158,117,0.12);
+    --glow-amber: rgba(239,159,39,0.12);
+    --glow-coral: rgba(216,90,48,0.12);
+    --glow-green: rgba(99,153,34,0.12);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 64px 40px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-tag {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  h1 span {
+    color: var(--accent-purple);
+  }
+
+  .header-sub {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    position: relative;
+    z-index: 10;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+  }
+
+  /* ── PHASE GROUPS ── */
+  .phase-group {
+    margin-bottom: 48px;
+  }
+
+  .phase-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .phase-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .doc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+  }
+
+  /* ── DOC CARD ── */
+  .doc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .doc-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 12px;
+  }
+
+  .doc-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+  }
+
+  .doc-card:hover::before { opacity: 1; }
+  .doc-card.active { border-color: var(--card-accent) !important; }
+  .doc-card.active::before { opacity: 1; }
+
+  .doc-card[data-color="purple"]  { --card-accent: var(--accent-purple); }
+  .doc-card[data-color="purple"]::before  { background: var(--glow-purple); }
+  .doc-card[data-color="blue"]    { --card-accent: var(--accent-blue); }
+  .doc-card[data-color="blue"]::before    { background: var(--glow-blue); }
+  .doc-card[data-color="teal"]    { --card-accent: var(--accent-teal); }
+  .doc-card[data-color="teal"]::before    { background: var(--glow-teal); }
+  .doc-card[data-color="amber"]   { --card-accent: var(--accent-amber); }
+  .doc-card[data-color="amber"]::before   { background: var(--glow-amber); }
+  .doc-card[data-color="coral"]   { --card-accent: var(--accent-coral); }
+  .doc-card[data-color="coral"]::before   { background: var(--glow-coral); }
+  .doc-card[data-color="green"]   { --card-accent: var(--accent-green); }
+  .doc-card[data-color="green"]::before   { background: var(--glow-green); }
+  .doc-card[data-color="gray"]    { --card-accent: var(--accent-gray); }
+
+  .card-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--card-accent);
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 5px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-sub {
+    font-size: 11px;
+    color: var(--text-faint);
+    line-height: 1.5;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-owner {
+    margin-top: 14px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--card-accent);
+    opacity: 0.8;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-arrow {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    font-size: 14px;
+    color: var(--text-faint);
+    transition: transform 0.2s, color 0.2s;
+    z-index: 1;
+  }
+
+  .doc-card:hover .card-arrow,
+  .doc-card.active .card-arrow {
+    color: var(--card-accent);
+    transform: rotate(45deg);
+  }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    display: none;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin: 14px 0 10px;
+    overflow: hidden;
+    animation: slideDown 0.25s ease;
+    grid-column: 1 / -1;
+  }
+
+  .detail-panel.open { display: block; }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-inner {
+    padding: 28px 32px 32px;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    gap: 20px;
+  }
+
+  .panel-title-group { flex: 1; }
+
+  .panel-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    background: var(--panel-badge-bg);
+    color: var(--panel-badge-text);
+  }
+
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+
+  .panel-tagline {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .panel-close {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .panel-close:hover { background: var(--surface); color: var(--text); }
+
+  .panel-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 22px 0;
+  }
+
+  .panel-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 680px) {
+    .panel-body { grid-template-columns: 1fr; }
+    header, main { padding-left: 20px; padding-right: 20px; }
+    .doc-grid { grid-template-columns: 1fr; }
+  }
+
+  .panel-section-title {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 12px;
+  }
+
+  .panel-desc {
+    font-family: 'Lora', serif;
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-muted);
+  }
+
+  .checklist {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .checklist li {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+  }
+
+  .checklist li::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background: var(--panel-badge-bg);
+    border: 1px solid var(--panel-accent-border);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='8' viewBox='0 0 10 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4L3.5 6.5L9 1' stroke='%23aaa' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .tools-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .tool-pill {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: var(--surface2);
+  }
+
+  .tip-box {
+    background: var(--surface2);
+    border-left: 3px solid var(--card-accent, var(--accent-purple));
+    border-radius: 0 8px 8px 0;
+    padding: 14px 16px;
+    margin-top: 20px;
+    grid-column: 1 / -1;
+  }
+
+  .tip-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--card-accent, var(--accent-purple));
+    margin-bottom: 6px;
+  }
+
+  .tip-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    font-family: 'Lora', serif;
+    font-style: italic;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative;
+    z-index: 10;
+    border-top: 1px solid var(--border);
+    padding: 28px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-text {
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.06em;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+
+  .legend-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">// master planning guide</div>
+  <h1>Building a<br><span>massive website</span></h1>
+  <p class="header-sub">Every document, every owner, every phase — a complete blueprint for how large companies plan and ship at scale.</p>
+  <div class="stats">
+    <div class="stat"><span class="stat-num">24</span><span class="stat-label">Core docs</span></div>
+    <div class="stat"><span class="stat-num">6</span><span class="stat-label">Phases</span></div>
+    <div class="stat"><span class="stat-num">7</span><span class="stat-label">Teams involved</span></div>
+    <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Ships on time</span></div>
+  </div>
+</header>
+
+<main id="main-content">
+  <!-- Cards are injected by JS -->
+</main>
+
+<footer>
+  <span class="footer-text">Click any card to expand full details</span>
+  <div class="legend" id="legend"></div>
+</footer>
+
+<script>
+const PHASES = [
+  {
+    id: 'planning',
+    label: 'Planning & requirements',
+    color: 'purple',
+    docs: [
+      {
+        id: 'prd',
+        title: 'PRD',
+        sub: 'Product requirements',
+        owner: 'Product Manager',
+        tagline: 'The north star document — what the product does and for whom.',
+        description: 'The Product Requirements Document is the single source of truth for what is being built. It translates business goals into product-level specifications before a single line of code is written. Every feature decision traces back to this document.',
+        contains: [
+          'Problem statement and target user personas',
+          'Goals, non-goals, and explicit out-of-scope items',
+          'Feature list with priority ranking (P1/P2/P3)',
+          'User stories in "as a [user] I want [action]" format',
+          'Acceptance criteria for each major feature',
+          'Success metrics and KPIs (DAU, conversion, retention)',
+          'Open questions and assumptions log',
+        ],
+        tools: ['Notion', 'Confluence', 'Google Docs', 'Linear'],
+        tip: 'Big companies like Airbnb gate every sprint with PRD sign-off. No approved PRD = no engineering work starts. This single rule prevents 80% of scope creep.',
+      },
+      {
+        id: 'brd',
+        title: 'BRD',
+        sub: 'Business requirements',
+        owner: 'Product + Stakeholders',
+        tagline: 'The business case — budget, ROI, and what success looks like in money.',
+        description: 'The Business Requirements Document sits above the PRD. It defines why the business is investing, what the financial return looks like, and which business constraints the product must operate within. Executives sign off on the BRD before the PRD is written.',
+        contains: [
+          'Executive summary and business justification',
+          'Budget breakdown and resource allocation',
+          'Revenue model and projected ROI',
+          'Regulatory and compliance requirements',
+          'Business constraints (legal, brand, market)',
+          'Stakeholder list with sign-off authority',
+          'Go/no-go decision criteria',
+        ],
+        tools: ['Confluence', 'Google Slides', 'Excel', 'PowerPoint'],
+        tip: 'The BRD is the document that gets the project funded. Write it for a CFO, not a developer. Lead with cost, risk, and return — leave the technical details to the PRD.',
+      },
+      {
+        id: 'tech-spec',
+        title: 'Tech spec',
+        sub: 'Stack decisions',
+        owner: 'Lead Architect',
+        tagline: 'The engineering manifesto — what we build with and why.',
+        description: 'The technical specification documents every technology decision before implementation begins. It forces architects to justify their choices, surfaces conflicts early, and gives the team a shared reference to resolve debates during build.',
+        contains: [
+          'Frontend framework and build tooling rationale',
+          'Backend language, framework, and runtime',
+          'Database selection (SQL vs NoSQL, primary vs cache)',
+          'Infrastructure and cloud provider (AWS/GCP/Azure)',
+          'Third-party services and vendor decisions',
+          'Authentication strategy (OAuth, JWT, sessions)',
+          'Deployment and CI/CD pipeline overview',
+        ],
+        tools: ['Google Docs', 'Notion', 'GitHub Wiki', 'Confluence'],
+        tip: 'Write an ADR (Architectural Decision Record) for every major choice. Each ADR documents: the context, the decision, and the consequences. Future engineers will thank you.',
+      },
+      {
+        id: 'roadmap',
+        title: 'Roadmap',
+        sub: 'Timeline + milestones',
+        owner: 'Project Manager',
+        tagline: 'The clock — deadlines, milestones, and who delivers what by when.',
+        description: 'The project roadmap converts the PRD and tech spec into a time-bound delivery plan. It is the primary tool for tracking progress, managing stakeholder expectations, and making scope decisions when the timeline is at risk.',
+        contains: [
+          'Phase breakdown (discovery, design, build, QA, launch)',
+          'Milestones with hard deadline dates',
+          'Dependency map between teams and features',
+          'Critical path — the sequence that cannot slip',
+          'Resource allocation per sprint',
+          'Contingency buffer per phase',
+          'Escalation triggers for missed gates',
+        ],
+        tools: ['Jira', 'Linear', 'Asana', 'Notion', 'Gantt (Miro)'],
+        tip: 'Amazon uses a "working backwards" roadmap — you write the press release for launch day first, then work backwards to define what must be built. This keeps every milestone tied to the actual user value.',
+      },
+    ]
+  },
+  {
+    id: 'architecture',
+    label: 'Architecture',
+    color: 'blue',
+    docs: [
+      {
+        id: 'sys-arch',
+        title: 'System architecture',
+        sub: 'Services, DB, infra',
+        owner: 'Lead Architect',
+        tagline: 'The full system map — every service, database, and wire between them.',
+        description: 'The system architecture document is the master diagram of the entire technical system. It shows how every component relates to every other component, how data flows, and where failure points exist. This is the document you reach for during an incident at 3am.',
+        contains: [
+          'High-level architecture diagram (C4 or system context)',
+          'Service inventory with responsibilities',
+          'Database topology (primary, replica, cache, search)',
+          'Infrastructure diagram (load balancers, CDN, regions)',
+          'Data flow diagrams for key user journeys',
+          'External service integrations and contracts',
+          'Failure modes and redundancy strategy',
+        ],
+        tools: ['Miro', 'Lucidchart', 'draw.io', 'Excalidraw', 'C4 Model'],
+        tip: 'Use the C4 Model: draw four levels — Context (what talks to what at 30,000ft), Containers (apps and databases), Components (modules inside a container), Code (class-level, only when needed). Most teams only need levels 1 and 2.',
+      },
+      {
+        id: 'api-contract',
+        title: 'API contract',
+        sub: 'Endpoints + schemas',
+        owner: 'Backend Lead',
+        tagline: 'The handshake — what the frontend can ask for and what it will receive.',
+        description: 'The API contract is how frontend and backend teams work in parallel without blocking each other. Once the contract is agreed and published, both teams can build against a mock simultaneously. It is the single biggest time-saver in a large website build.',
+        contains: [
+          'API versioning strategy (/v1, /v2 routing)',
+          'Endpoint list with HTTP method, path, and purpose',
+          'Request/response schemas with field types',
+          'Authentication and authorization headers',
+          'Error codes and error response format',
+          'Rate limiting rules and retry guidance',
+          'Breaking change policy',
+        ],
+        tools: ['OpenAPI / Swagger', 'Postman', 'Stoplight', 'Redoc'],
+        tip: 'Define the API contract before any frontend code is written. Tools like Mirage.js or MSW let frontend devs mock the API instantly from the contract — they build full UI against fake data while backend builds the real thing.',
+      },
+      {
+        id: 'data-model',
+        title: 'Data model',
+        sub: 'ERD + schemas',
+        owner: 'Backend / DB Architect',
+        tagline: 'The source of truth for every entity, field, and relationship.',
+        description: 'The data model document defines the structure of all data in the system. It covers database schemas, entity relationships, field constraints, and indexing strategy. Every engineer reads this before touching the database.',
+        contains: [
+          'Entity Relationship Diagram (ERD)',
+          'Table/collection schema with field types and constraints',
+          'Primary keys, foreign keys, indexes',
+          'Enum values and validation rules',
+          'Soft delete vs hard delete strategy',
+          'Audit trail and timestamp conventions',
+          'Data migration and seeding strategy',
+        ],
+        tools: ['dbdiagram.io', 'Prisma', 'pgAdmin', 'Lucidchart'],
+        tip: 'Treat the data model as a living contract — any schema change requires a migration script and a PR review. Never change production schemas directly. Add a "schema changelog" section to track every migration with its rationale.',
+      },
+      {
+        id: 'security-doc',
+        title: 'Security doc',
+        sub: 'Auth, access, threats',
+        owner: 'Security Engineer',
+        tagline: 'The threat model — what can go wrong and how we stop it.',
+        description: 'The security design document identifies threats before they are exploited. It defines authentication flows, authorization rules, data handling policies, and the penetration testing plan. In regulated industries, this document is audited by external parties.',
+        contains: [
+          'Threat model (STRIDE or OWASP Top 10 mapped)',
+          'Authentication flow diagrams (OAuth, SSO, MFA)',
+          'Role-based access control (RBAC) matrix',
+          'Data encryption at rest and in transit',
+          'PII data handling and retention policy',
+          'Pen testing plan and responsible disclosure policy',
+          'Incident response playbook',
+        ],
+        tools: ['OWASP ZAP', 'Snyk', 'HackerOne', 'Burp Suite'],
+        tip: 'Run a threat modelling session with STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) before writing a line of auth code. One hour of threat modelling saves weeks of security rework.',
+      },
+    ]
+  },
+  {
+    id: 'design',
+    label: 'UX / UI design',
+    color: 'teal',
+    docs: [
+      {
+        id: 'ux-research',
+        title: 'UX research',
+        sub: 'Personas, journeys',
+        owner: 'UX Researcher',
+        tagline: 'The human map — who your users are and how they think.',
+        description: 'UX research grounds all design decisions in observed behavior rather than assumptions. It produces personas, journey maps, and behavioral flows that every designer and PM refers back to when making product decisions.',
+        contains: [
+          'User research methodology (interviews, surveys, analytics)',
+          '3–5 primary personas with goals and frustrations',
+          'User journey maps per persona and key task',
+          'Jobs To Be Done (JTBD) statements',
+          'Competitor UX audit findings',
+          'Usability test results and insights',
+          'Accessibility requirements by user segment',
+        ],
+        tools: ['Figma FigJam', 'Maze', 'Hotjar', 'UserTesting', 'Dovetail'],
+        tip: 'Never design for "users" — design for a specific named persona with a specific goal in a specific context. "Sarah, 34, on mobile, checking her order status during her commute" produces better design decisions than "mobile user."',
+      },
+      {
+        id: 'design-system',
+        title: 'Design system',
+        sub: 'Tokens, components',
+        owner: 'Design Lead',
+        tagline: 'The shared language — every color, type scale, and component defined once.',
+        description: 'A design system is the single source of truth for visual and interactive consistency. It eliminates design debt, reduces handoff friction, and lets teams build new features in days rather than weeks by composing from existing components.',
+        contains: [
+          'Design tokens (colors, spacing, typography, radius)',
+          'Component library with states (default, hover, focus, disabled, error)',
+          'Layout grid and responsive breakpoints',
+          'Iconography guidelines and icon set',
+          'Motion and animation principles',
+          'Accessibility standards per component (WCAG 2.1 AA)',
+          'Usage dos and don\'ts for each component',
+        ],
+        tools: ['Figma', 'Storybook', 'Zeroheight', 'Tokens Studio'],
+        tip: 'Build your design system in Storybook alongside your component library. Every Figma component should have a 1:1 coded equivalent. When design tokens change in Figma, they should propagate to code via token sync tools automatically.',
+      },
+      {
+        id: 'wireframes',
+        title: 'Wireframes',
+        sub: 'Lo-fi + hi-fi flows',
+        owner: 'UX / UI Designer',
+        tagline: 'The layout blueprint — structure and flow before color and polish.',
+        description: 'Wireframes capture layout, hierarchy, and user flow without the distraction of visual design. Low-fidelity wireframes validate structure quickly. High-fidelity prototypes validate interactions and are used for usability testing before build begins.',
+        contains: [
+          'Lo-fi wireframes for all primary screens',
+          'Annotated notes explaining layout decisions',
+          'Hi-fi mockups using the design system components',
+          'Interactive Figma prototype for key user flows',
+          'Responsive variants (desktop, tablet, mobile)',
+          'Edge case screens (empty states, errors, loading)',
+          'Usability test scripts and results',
+        ],
+        tools: ['Figma', 'Balsamiq', 'Sketch', 'Whimsical'],
+        tip: 'Never skip lo-fi. Jumping straight to hi-fi causes teams to defend visual decisions instead of structural ones. Lo-fi wireframes with fat marker aesthetics signal "this is rough, please critique" — which gets better feedback faster.',
+      },
+      {
+        id: 'interaction-spec',
+        title: 'Interaction spec',
+        sub: 'Dialogs, states, flows',
+        owner: 'UX Designer + Dev Lead',
+        tagline: 'The behavior manual — what happens in every state, transition, and edge case.',
+        description: 'The interaction specification documents every non-obvious behavior in the product. It is the handoff document between design and engineering — any dialog, animation, loading state, or error behavior that is not in this doc will be implemented inconsistently across features.',
+        contains: [
+          'Dialog and modal behavior (triggers, close conditions)',
+          'Form validation rules and error message copy',
+          'Loading and skeleton state designs',
+          'Success and confirmation state designs',
+          'Empty state designs with action prompts',
+          'Micro-animation specifications (duration, easing)',
+          'Keyboard navigation and focus management',
+        ],
+        tools: ['Figma', 'Zeplin', 'Notion', 'ProtoPie'],
+        tip: 'Create a "states matrix" — a table where rows are components and columns are states (default, hover, active, focus, loading, success, error, disabled, empty). Filling every cell forces you to design every state before engineers start building.',
+      },
+    ]
+  },
+  {
+    id: 'engineering',
+    label: 'Engineering',
+    color: 'amber',
+    docs: [
+      {
+        id: 'frontend-spec',
+        title: 'Frontend spec',
+        sub: 'Components, routing',
+        owner: 'Frontend Lead',
+        tagline: 'The component blueprint — how the UI is structured in code.',
+        description: 'The frontend architecture specification defines the component tree, routing strategy, state management approach, and performance targets. It ensures all frontend engineers make consistent architectural decisions without daily coordination.',
+        contains: [
+          'Component hierarchy and folder structure',
+          'Routing architecture (file-based vs config-based)',
+          'State management strategy (global vs local vs server)',
+          'Data fetching approach (SWR, React Query, tRPC)',
+          'Code-splitting and lazy loading strategy',
+          'Performance budget (Core Web Vitals targets)',
+          'Testing approach (unit, integration, E2E)',
+        ],
+        tools: ['Next.js', 'React', 'Vite', 'Zustand', 'React Query', 'Playwright'],
+        tip: 'Define your "component contract" — every shared component must have documented props, default values, and stories in Storybook. No component should be "magic" — all behavior should be documented and predictable from its interface alone.',
+      },
+      {
+        id: 'backend-spec',
+        title: 'Backend spec',
+        sub: 'Services, queues, jobs',
+        owner: 'Backend Lead',
+        tagline: 'The server blueprint — how requests move, transform, and persist.',
+        description: 'The backend specification defines the service architecture, async processing strategy, and data flow between layers. It is the primary reference for backend engineers making implementation decisions and the document QA engineers read to understand system behavior.',
+        contains: [
+          'Service inventory with responsibility boundaries',
+          'Synchronous request/response flows',
+          'Async queue and event architecture',
+          'Background job schedule and retry strategy',
+          'Caching layers (Redis, CDN, query caching)',
+          'Database access patterns and ORM usage',
+          'Internal service communication (REST, gRPC, events)',
+        ],
+        tools: ['Node.js', 'Python', 'PostgreSQL', 'Redis', 'RabbitMQ', 'Kafka'],
+        tip: 'Map every background job to a failure scenario: what happens if it fails at 50% completion? Every job should be idempotent — running it twice should produce the same result as running it once. Design for failure before you design for success.',
+      },
+      {
+        id: 'dev-setup',
+        title: 'Dev setup',
+        sub: 'Env, tooling, CI/CD',
+        owner: 'DevOps / Platform Team',
+        tagline: 'The onboarding bible — zero to running in under 30 minutes.',
+        description: 'The development environment setup guide ensures every engineer can run the full stack locally in a repeatable, documented way. Companies that measure "time to first PR" use this document as their primary onboarding quality metric.',
+        contains: [
+          'Prerequisites (Node version, Docker, OS requirements)',
+          'Step-by-step local environment setup',
+          'Environment variable list and example .env file',
+          'Database setup and seeding commands',
+          'Running tests and checking coverage',
+          'CI/CD pipeline overview (what runs on PR vs merge)',
+          'Common troubleshooting issues and fixes',
+        ],
+        tools: ['Docker', 'GitHub Actions', 'nvm', 'mise', 'Doppler'],
+        tip: 'Measure your onboarding time and treat it as a product metric. If a new engineer cannot make a meaningful code change within their first day, your setup doc has failed. Run a "new hire simulation" quarterly — follow your own docs from scratch.',
+      },
+      {
+        id: 'coding-standards',
+        title: 'Coding standards',
+        sub: 'Style, review rules',
+        owner: 'Engineering Lead',
+        tagline: 'The team contract — the rules that make a codebase feel written by one person.',
+        description: 'Coding standards define the non-negotiable conventions that keep a large codebase consistent and reviewable. Without them, every PR becomes a style debate. With them, reviews focus on logic and correctness — the things that actually matter.',
+        contains: [
+          'File and folder naming conventions',
+          'Variable, function, and class naming rules',
+          'Comment and JSDoc standards',
+          'PR size limits and commit message format',
+          'Code review checklist (what reviewers must check)',
+          'Linting and formatting configuration (ESLint, Prettier)',
+          'Branch strategy (feature, hotfix, release naming)',
+        ],
+        tools: ['ESLint', 'Prettier', 'Husky', 'Commitlint', 'GitHub'],
+        tip: 'Automate everything you can enforce with tooling. If a rule can be caught by ESLint or enforced by a git hook, it should never appear in a code review. Reserve human review time for logic, architecture, and security — not semicolons.',
+      },
+    ]
+  },
+  {
+    id: 'pm',
+    label: 'Project management',
+    color: 'coral',
+    docs: [
+      {
+        id: 'sprint-plan',
+        title: 'Sprint plan',
+        sub: 'Stories, capacity',
+        owner: 'Project Manager',
+        tagline: 'The two-week contract — what the team commits to delivering.',
+        description: 'Sprint planning transforms the roadmap into actionable, time-boxed work. Each sprint plan documents team capacity, committed stories, and acceptance criteria. It is the daily reference for standups and the record for retrospectives.',
+        contains: [
+          'Sprint goal statement (one sentence)',
+          'Team capacity in story points',
+          'Committed user stories with point estimates',
+          'Dependencies on other teams flagged',
+          'Sprint backlog ranked by priority',
+          'Definition of Done for this sprint',
+          'Risk items and mitigation notes',
+        ],
+        tools: ['Jira', 'Linear', 'Shortcut', 'Notion'],
+        tip: 'The sprint goal is more important than the task list. A clear one-sentence goal ("Users can complete checkout without creating an account") lets the team make autonomous decisions when priorities conflict mid-sprint.',
+      },
+      {
+        id: 'risk-register',
+        title: 'Risk register',
+        sub: 'Blockers, mitigations',
+        owner: 'Project Manager',
+        tagline: 'The worry list — every known risk catalogued with a plan.',
+        description: 'The risk register captures every identified risk to the project timeline, quality, or scope before it becomes an incident. It is reviewed weekly in project meetings and updated whenever a new risk is identified.',
+        contains: [
+          'Risk ID and date identified',
+          'Risk description and affected phase',
+          'Likelihood rating (High / Medium / Low)',
+          'Impact rating (High / Medium / Low)',
+          'Risk owner (who monitors this)',
+          'Mitigation strategy',
+          'Contingency plan if risk materialises',
+        ],
+        tools: ['Confluence', 'Notion', 'Google Sheets', 'Jira'],
+        tip: 'Treat the risk register as a living dashboard, not a one-time document. Review every risk at the weekly PM sync. When a risk level changes from Low to High, that triggers an immediate stakeholder notification — don\'t wait for the next status report.',
+      },
+      {
+        id: 'raci',
+        title: 'RACI matrix',
+        sub: 'Roles, ownership',
+        owner: 'Project Manager',
+        tagline: 'The decision map — who is responsible, accountable, consulted, or informed.',
+        description: 'The RACI matrix eliminates ambiguity about who makes decisions and who must be consulted. On large teams, unclear ownership is the most common cause of delays — two teams each assume the other owns something until a deadline is missed.',
+        contains: [
+          'All major deliverables listed as rows',
+          'All team roles/people listed as columns',
+          'R = Responsible (does the work)',
+          'A = Accountable (signs off, one person only)',
+          'C = Consulted (input required before decision)',
+          'I = Informed (notified after decision)',
+          'Escalation path when RACI is disputed',
+        ],
+        tools: ['Confluence', 'Notion', 'Google Sheets', 'Miro'],
+        tip: 'Every row must have exactly one Accountable. If you have two or three people marked A on the same row, you have no decision-maker — you have a committee. Committees don\'t ship products. Pick one A and make it official.',
+      },
+      {
+        id: 'deadline-tracker',
+        title: 'Deadline tracker',
+        sub: 'Velocity, burndown',
+        owner: 'Project Manager',
+        tagline: 'The health monitor — are we on track, and if not, by how much?',
+        description: 'The deadline tracker provides real-time visibility into project health. It combines velocity data from the sprint tool with milestone dates from the roadmap to produce an honest forecast of whether the project will ship on time.',
+        contains: [
+          'Milestone list with baseline vs current forecast date',
+          'Sprint velocity trend (story points per sprint)',
+          'Burndown chart per sprint',
+          'Scope change log (added vs removed stories)',
+          'Days of buffer consumed vs planned',
+          'Red/Amber/Green (RAG) status per workstream',
+          'Weekly status update sent to stakeholders',
+        ],
+        tools: ['Jira dashboards', 'Linear', 'Notion', 'Google Sheets'],
+        tip: 'Calculate your "slip rate" weekly: (current forecast date - original deadline) / weeks elapsed. If your slip rate is positive and growing each week, no amount of overtime will save the deadline — you need a scope conversation, not a crunch.',
+      },
+    ]
+  },
+  {
+    id: 'qa',
+    label: 'Quality & testing',
+    color: 'green',
+    docs: [
+      {
+        id: 'qa-plan',
+        title: 'QA test plan',
+        sub: 'Cases, coverage',
+        owner: 'QA Lead',
+        tagline: 'The quality contract — how we know the website works before it ships.',
+        description: 'The QA test plan defines the testing strategy, scope, environments, entry/exit criteria, and defect management process. It is written before QA begins and signed off by QA Lead, PM, and Engineering Lead. No launch without a signed QA plan.',
+        contains: [
+          'Test scope (what is and is not being tested)',
+          'Test types: functional, regression, cross-browser, mobile, a11y, perf, security',
+          'Test case inventory with IDs, steps, and expected results',
+          'Test environments (staging, UAT, pre-prod) and browser/device matrix',
+          'Entry criteria (when QA can start) and exit criteria (definition of done)',
+          'Defect severity levels (P1 blocker → P4 cosmetic) and SLA per level',
+          'Automation scope and CI/CD integration plan',
+        ],
+        tools: ['TestRail', 'Xray', 'Playwright', 'Cypress', 'BrowserStack'],
+        tip: 'Define your go/no-go criteria before QA begins, not on launch day. "Zero P1 bugs, ≤3 P2 bugs with workarounds documented, 95% test cases passed" removes all subjectivity from the launch decision and prevents last-minute politics.',
+      },
+      {
+        id: 'a11y',
+        title: 'A11y checklist',
+        sub: 'WCAG, screen reader',
+        owner: 'QA + UX',
+        tagline: 'The inclusion checklist — usable by every human, regardless of ability.',
+        description: 'The accessibility checklist ensures the website meets WCAG 2.1 AA standards and is usable by people with visual, motor, auditory, and cognitive disabilities. In many markets this is a legal requirement. It is tested with automated tools and manual screen reader testing.',
+        contains: [
+          'WCAG 2.1 AA success criteria mapped to components',
+          'Color contrast ratios (4.5:1 normal text, 3:1 large text)',
+          'Keyboard navigation flow and focus order',
+          'ARIA labels and landmark regions',
+          'Screen reader test scripts (NVDA/JAWS on Windows, VoiceOver on Mac/iOS)',
+          'Form error identification and feedback',
+          'Animation and motion reduction support',
+        ],
+        tools: ['axe', 'Lighthouse', 'NVDA', 'VoiceOver', 'WAVE'],
+        tip: 'Run automated accessibility tests in your CI pipeline using axe-core. This catches ~30% of issues automatically. The remaining 70% require manual testing — schedule a 2-hour screen reader testing session with a real keyboard-only user at least once per major feature.',
+      },
+      {
+        id: 'perf-budget',
+        title: 'Perf. budget',
+        sub: 'Core Web Vitals',
+        owner: 'Frontend Lead + DevOps',
+        tagline: 'The speed contract — the performance floor the site must never drop below.',
+        description: 'A performance budget defines the maximum allowed values for key performance metrics. It is enforced in CI so that no code can be merged that causes a regression. Google\'s Core Web Vitals directly impact search ranking, making this a business document as much as a technical one.',
+        contains: [
+          'LCP target: ≤2.5s (Largest Contentful Paint)',
+          'FID/INP target: ≤200ms (interaction responsiveness)',
+          'CLS target: ≤0.1 (layout stability)',
+          'Total page weight budget per route',
+          'JavaScript bundle size limits (main bundle ≤150kb gzipped)',
+          'Image optimization requirements (WebP/AVIF, lazy loading)',
+          'CI performance gates (Lighthouse scores as merge requirement)',
+        ],
+        tools: ['Lighthouse', 'WebPageTest', 'Bundlephobia', 'Datadog RUM'],
+        tip: 'Enforce the performance budget in CI as a hard gate — not a warning. PRs that push LCP above 2.5s are automatically rejected. This is the only way to prevent "death by a thousand cuts" performance regression over months of feature development.',
+      },
+      {
+        id: 'launch-checklist',
+        title: 'Launch checklist',
+        sub: 'Go-live gates',
+        owner: 'Project Manager + DevOps',
+        tagline: 'The final gate — 47 checks between code freeze and go-live.',
+        description: 'The launch checklist is a comprehensive, step-by-step verification document that must be completed before any traffic is sent to the new site. Each item has an owner and must be signed off. Launch is blocked until every item is checked.',
+        contains: [
+          'QA sign-off: zero P1/P2 bugs open',
+          'Security sign-off: pen test completed and critical findings resolved',
+          'Performance sign-off: Core Web Vitals all green in staging',
+          'Accessibility sign-off: WCAG 2.1 AA passed',
+          'DNS, SSL, and domain configuration verified',
+          'Analytics, monitoring, and alerting confirmed live',
+          'Rollback plan documented and tested',
+        ],
+        tools: ['Notion', 'Confluence', 'Datadog', 'PagerDuty', 'Cloudflare'],
+        tip: 'Run a "launch rehearsal" 1 week before go-live — go through the entire checklist against staging as if it were production. This surfaces issues (wrong env vars, missing DNS records, alerting misconfiguration) while you still have time to fix them.',
+      },
+    ]
+  },
+  {
+    id: 'ops',
+    label: 'Post-launch & ops',
+    color: 'gray',
+    docs: [
+      {
+        id: 'runbook',
+        title: 'Runbook',
+        sub: 'On-call, incidents',
+        owner: 'DevOps / SRE',
+        tagline: 'The incident playbook — step-by-step when things break at 3am.',
+        description: 'A runbook is a documented procedure for responding to system events and incidents. It removes cognitive load from on-call engineers by providing pre-written, tested response steps for every known failure scenario.',
+        contains: [
+          'On-call rotation schedule and escalation contacts',
+          'Alert definitions and severity levels (SEV1–SEV4)',
+          'Step-by-step response procedure per alert type',
+          'Rollback procedure with exact commands',
+          'Communication templates (internal Slack, status page, customer email)',
+          'Post-incident review (PIR) process and template',
+          'SLA and SLO definitions with breach escalation',
+        ],
+        tools: ['PagerDuty', 'Datadog', 'Grafana', 'Statuspage', 'Confluence'],
+        tip: 'Every runbook step must be actionable by a sleep-deprived engineer who has never seen the system before. If a step says "investigate the logs", it has failed — it should say "run this exact command, look for this pattern, if you see X do Y."',
+      },
+      {
+        id: 'analytics-plan',
+        title: 'Analytics plan',
+        sub: 'Events, funnels, KPIs',
+        owner: 'Product + Analytics',
+        tagline: 'The measurement blueprint — what data to collect and what questions it answers.',
+        description: 'The analytics tracking plan defines every event the product should emit, what properties to attach, and how those events map to business KPIs. Without this plan, data is inconsistent across teams and business questions cannot be answered after launch.',
+        contains: [
+          'KPI hierarchy (north star → team metrics → feature metrics)',
+          'Event taxonomy and naming conventions',
+          'Event inventory with trigger, properties, and business question',
+          'Funnel definitions for key user flows',
+          'A/B test tracking requirements',
+          'Privacy and consent requirements (GDPR, CCPA)',
+          'Dashboard and report specifications',
+        ],
+        tools: ['Mixpanel', 'Amplitude', 'Segment', 'GA4', 'Heap'],
+        tip: 'Write the tracking plan before build, not after. Retrofitting analytics is expensive and often incomplete. For every feature, the PM should answer: "what question will we ask the data in 90 days?" — then design the tracking to answer that question.',
+      },
+      {
+        id: 'retro',
+        title: 'Retrospective',
+        sub: 'Learnings, next steps',
+        owner: 'Project Manager',
+        tagline: 'The honest debrief — what worked, what didn\'t, and what changes next time.',
+        description: 'The retrospective document captures structured team feedback after each sprint and after launch. It drives continuous improvement by converting team observations into concrete process changes with owners and deadlines.',
+        contains: [
+          'What went well — practices to protect and amplify',
+          'What went poorly — root causes, not symptoms',
+          'What was confusing — documentation or process gaps',
+          'Action items with named owner and due date',
+          'Metrics comparison: planned vs actual velocity',
+          'Recurring themes across retrospectives',
+          'Process changes implemented since last retro',
+        ],
+        tools: ['FunRetro', 'Retrium', 'Miro', 'Notion'],
+        tip: 'The retrospective is only as good as its action items. Every meeting must produce 3–5 specific, measurable changes with a single named owner. "We should communicate better" is not an action item. "PM will send a written decision log every Friday by 5pm" is.',
+      },
+      {
+        id: 'handoff',
+        title: 'Handoff doc',
+        sub: 'Maintenance, ops',
+        owner: 'Engineering Lead',
+        tagline: 'The operations manual — everything the next team needs to keep this running.',
+        description: 'The handoff document ensures that the team who built the product is not the only team who can maintain it. It captures institutional knowledge, known quirks, and operational procedures so that the product can be operated by anyone.',
+        contains: [
+          'System overview for a new engineer (architecture in plain language)',
+          'Known technical debt and why it exists',
+          'Cron jobs, background tasks, and scheduled maintenance',
+          'Third-party dependency renewal dates (SSL certs, API keys)',
+          'Data backup and recovery procedures',
+          'Deployment procedure (step by step)',
+          'Contact list: vendors, domain registrar, cloud account owner',
+        ],
+        tools: ['Confluence', 'Notion', 'GitHub Wiki', 'Readme.io'],
+        tip: 'Test the handoff doc by having someone who was not on the project team follow it to deploy a change. If they get stuck at any point, that is a documentation failure. The goal: any mid-level engineer can maintain this system with only this document.',
+      },
+    ]
+  }
+];
+
+const COLOR_MAP = {
+  purple: { accent: '#7f77dd', badgeBg: '#2a2840', badgeText: '#a09ae8', border: '#4a4290' },
+  blue:   { accent: '#378add', badgeBg: '#1c2e44', badgeText: '#6aaae8', border: '#2a5282' },
+  teal:   { accent: '#1d9e75', badgeBg: '#162e25', badgeText: '#3ec898', border: '#1a5c42' },
+  amber:  { accent: '#ef9f27', badgeBg: '#2e2010', badgeText: '#f0b855', border: '#7a4d10' },
+  coral:  { accent: '#d85a30', badgeBg: '#2e1810', badgeText: '#e87a55', border: '#7a3018' },
+  green:  { accent: '#639922', badgeBg: '#1a2610', badgeText: '#88c040', border: '#3a5c14' },
+  gray:   { accent: '#888780', badgeBg: '#222222', badgeText: '#aaa9a0', border: '#555550' },
+};
+
+let activeCard = null;
+
+function renderAll() {
+  const main = document.getElementById('main-content');
+  main.innerHTML = '';
+
+  PHASES.forEach(phase => {
+    const phaseDiv = document.createElement('div');
+    phaseDiv.className = 'phase-group';
+
+    const phaseLabel = document.createElement('div');
+    phaseLabel.className = 'phase-label';
+    phaseLabel.textContent = phase.label;
+    phaseDiv.appendChild(phaseLabel);
+
+    const grid = document.createElement('div');
+    grid.className = 'doc-grid';
+    grid.id = 'grid-' + phase.id;
+
+    phase.docs.forEach(doc => {
+      const card = document.createElement('div');
+      card.className = 'doc-card';
+      card.dataset.color = phase.color;
+      card.dataset.id = doc.id;
+      card.dataset.phase = phase.id;
+      card.style.setProperty('--card-accent', COLOR_MAP[phase.color].accent);
+      card.innerHTML = `
+        <div class="card-dot"></div>
+        <div class="card-title">${doc.title}</div>
+        <div class="card-sub">${doc.sub}</div>
+        <div class="card-owner">${doc.owner}</div>
+        <span class="card-arrow">+</span>
+      `;
+      card.addEventListener('click', () => toggleDetail(card, doc, phase));
+      grid.appendChild(card);
+    });
+
+    phaseDiv.appendChild(grid);
+    main.appendChild(phaseDiv);
+  });
+
+  renderLegend();
+}
+
+function toggleDetail(card, doc, phase) {
+  const grid = card.parentElement;
+  const existingPanel = grid.querySelector('.detail-panel');
+  const color = phase.color;
+  const c = COLOR_MAP[color];
+
+  if (activeCard === card) {
+    if (existingPanel) existingPanel.remove();
+    card.classList.remove('active');
+    activeCard = null;
+    return;
+  }
+
+  if (activeCard) {
+    activeCard.classList.remove('active');
+    if (existingPanel) existingPanel.remove();
+  }
+
+  activeCard = card;
+  card.classList.add('active');
+
+  const panel = document.createElement('div');
+  panel.className = 'detail-panel open';
+  panel.style.borderColor = c.accent + '40';
+  panel.style.setProperty('--card-accent', c.accent);
+  panel.style.setProperty('--panel-badge-bg', c.badgeBg);
+  panel.style.setProperty('--panel-badge-text', c.badgeText);
+  panel.style.setProperty('--panel-accent-border', c.border);
+
+  const checklistHTML = doc.contains.map(item => `<li>${item}</li>`).join('');
+  const toolsHTML = doc.tools.map(t => `<span class="tool-pill">${t}</span>`).join('');
+
+  panel.innerHTML = `
+    <div class="panel-inner">
+      <div class="panel-header">
+        <div class="panel-title-group">
+          <span class="panel-badge" style="background:${c.badgeBg}; color:${c.badgeText};">${phase.label}</span>
+          <div class="panel-title">${doc.title}</div>
+          <div class="panel-tagline">${doc.tagline}</div>
+        </div>
+        <button class="panel-close" onclick="closePanel(event)">×</button>
+      </div>
+      <div class="panel-divider"></div>
+      <div class="panel-body">
+        <div>
+          <div class="panel-section-title">What it is</div>
+          <p class="panel-desc">${doc.description}</p>
+          <div style="margin-top:16px;">
+            <div class="panel-section-title">Common tools</div>
+            <div class="tools-row">${toolsHTML}</div>
+          </div>
+        </div>
+        <div>
+          <div class="panel-section-title">What it contains</div>
+          <ul class="checklist">${checklistHTML}</ul>
+        </div>
+        <div class="tip-box" style="border-left-color:${c.accent};">
+          <div class="tip-label" style="color:${c.badgeText};">How big companies do it</div>
+          <div class="tip-text">${doc.tip}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  grid.appendChild(panel);
+
+  setTimeout(() => {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 80);
+}
+
+function closePanel(e) {
+  e.stopPropagation();
+  const panel = e.target.closest('.detail-panel');
+  if (panel) panel.remove();
+  if (activeCard) {
+    activeCard.classList.remove('active');
+    activeCard = null;
+  }
+}
+
+function renderLegend() {
+  const legend = document.getElementById('legend');
+  const colors = [
+    { color: 'purple', label: 'PM / Stakeholders' },
+    { color: 'blue', label: 'Architects' },
+    { color: 'teal', label: 'UX / UI' },
+    { color: 'amber', label: 'Engineers' },
+    { color: 'coral', label: 'Project Mgmt' },
+    { color: 'green', label: 'QA / DevOps' },
+    { color: 'gray', label: 'Ops' },
+  ];
+  legend.innerHTML = colors.map(l => `
+    <div class="legend-item">
+      <span class="legend-dot" style="background:${COLOR_MAP[l.color].accent}"></span>
+      ${l.label}
+    </div>
+  `).join('');
+}
+
+renderAll();
+</script>
+</body>
+</html>
