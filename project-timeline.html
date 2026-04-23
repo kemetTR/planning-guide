@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Timeline — Gantt Chart</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0c0c0e;
+  --bg2:       #111114;
+  --surface:   #18181d;
+  --surface2:  #1f1f26;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.13);
+  --text:      #eceae0;
+  --muted:     #7a7a86;
+  --faint:     #3a3a46;
+
+  --c-plan:    #7F77DD;
+  --c-arch:    #378ADD;
+  --c-ux:      #1D9E75;
+  --c-eng:     #EF9F27;
+  --c-eng2:    #c47e12;
+  --c-qa:      #639922;
+  --c-hard:    #D85A30;
+  --c-ops:     #888780;
+  --c-gate:    #c4960a;
+
+  --col-w: 28px;
+  --row-h: 62px;
+  --label-w: 196px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ── HEADER ── */
+.page-header {
+  position: relative; z-index: 10;
+  padding: 48px 40px 28px;
+  display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+  border-bottom: 1px solid var(--border);
+  max-width: 1400px; margin: 0 auto;
+}
+.header-left {}
+.header-tag { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint); margin-bottom: 10px; }
+h1 { font-family: 'Syne', sans-serif; font-size: clamp(26px,4vw,44px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+h1 span { color: var(--c-eng); }
+.header-meta { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+/* ── SIZE SWITCHER ── */
+.size-switcher { display: flex; gap: 8px; flex-wrap: wrap; }
+.sz-btn {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 10px 22px; border-radius: 40px;
+  border: 1.5px solid var(--border2);
+  background: transparent; color: var(--muted);
+  cursor: pointer; transition: all .2s;
+  white-space: nowrap;
+}
+.sz-btn:hover { border-color: var(--text); color: var(--text); }
+.sz-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+/* ── GANTT WRAPPER ── */
+.gantt-section {
+  position: relative; z-index: 10;
+  max-width: 1400px; margin: 0 auto;
+  padding: 28px 40px 0;
+}
+
+.gantt-scroll-outer {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg2);
+}
+
+/* scrollbar */
+.gantt-scroll-outer::-webkit-scrollbar { height: 6px; }
+.gantt-scroll-outer::-webkit-scrollbar-track { background: transparent; }
+.gantt-scroll-outer::-webkit-scrollbar-thumb { background: var(--faint); border-radius: 3px; }
+
+.gantt-inner { min-width: max-content; }
+
+/* ── HEADER ROW ── */
+.g-head {
+  display: flex;
+  border-bottom: 1px solid var(--border2);
+  background: var(--surface);
+  position: sticky; top: 0; z-index: 20;
+}
+.g-head-label {
+  width: var(--label-w); min-width: var(--label-w);
+  padding: 10px 16px;
+  font-size: 11px; color: var(--muted);
+  border-right: 1px solid var(--border2);
+  display: flex; align-items: flex-end;
+  letter-spacing: 0.06em;
+}
+.g-head-cols { display: flex; flex: 1; }
+.g-col-header {
+  width: var(--col-w); min-width: var(--col-w);
+  text-align: center;
+  font-size: 10px; color: var(--faint);
+  padding: 6px 0 8px;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.g-col-header.month-start { border-right-color: var(--border2); }
+.g-col-header .month-name {
+  display: block; font-size: 11px; font-weight: 500;
+  color: var(--muted); margin-bottom: 2px;
+  letter-spacing: 0.04em;
+}
+.g-col-header .week-num { font-size: 9px; color: var(--faint); }
+
+/* ── GANTT ROWS ── */
+.g-row {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+.g-row:last-child { border-bottom: none; }
+.g-row:hover { background: rgba(255,255,255,0.013); }
+
+.g-label {
+  width: var(--label-w); min-width: var(--label-w);
+  padding: 0 16px;
+  border-right: 1px solid var(--border2);
+  display: flex; flex-direction: column; justify-content: center; gap: 3px;
+}
+.g-label-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.g-label-owner { font-size: 10px; color: var(--muted); }
+
+.g-cells { display: flex; flex: 1; position: relative; height: var(--row-h); }
+
+.g-cell {
+  width: var(--col-w); min-width: var(--col-w);
+  border-right: 1px solid var(--border);
+  height: 100%;
+  position: relative;
+  flex-shrink: 0;
+}
+.g-cell.month-start { border-right-color: var(--border2); }
+.g-cell.today-col { background: rgba(232,89,60,0.04); }
+.g-cell.today-col::after {
+  content: 'TODAY';
+  position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+  font-size: 8px; font-weight: 500; color: rgba(232,89,60,0.7);
+  letter-spacing: 0.08em; white-space: nowrap;
+  pointer-events: none;
+}
+.g-cell.today-col::before {
+  content: '';
+  position: absolute; top: 0; bottom: 0; left: 50%;
+  width: 1px; background: rgba(232,89,60,0.35);
+  pointer-events: none;
+}
+
+/* ── BARS ── */
+.bar-segment {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  height: 26px;
+  cursor: pointer;
+  transition: filter .15s, transform .12s;
+  display: flex; align-items: center;
+  overflow: visible;
+}
+.bar-segment:hover { filter: brightness(1.18); transform: translateY(-50%) scaleY(1.07); z-index: 5; }
+.bar-segment .bar-fill {
+  height: 100%; width: 100%;
+  display: flex; align-items: center;
+}
+.bar-segment .bar-text {
+  position: absolute; left: 9px;
+  font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.92);
+  white-space: nowrap; overflow: hidden;
+  pointer-events: none; z-index: 2;
+  max-width: calc(100% - 14px);
+}
+
+/* ── GATE DIAMOND ── */
+.gate-diamond {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 16px; height: 16px;
+  background: var(--c-gate);
+  border: 2px solid #e8b840;
+  cursor: pointer;
+  transition: transform .15s;
+  z-index: 10;
+}
+.gate-diamond:hover {
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.3);
+}
+.gate-diamond::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 22px; left: 50%; transform: translateX(-50%) rotate(-45deg);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 11px; white-space: nowrap;
+  color: var(--text); font-family: 'DM Mono', monospace;
+  pointer-events: none;
+  opacity: 0; transition: opacity .15s;
+  z-index: 30;
+}
+.gate-diamond:hover::after { opacity: 1; }
+
+/* ── DETAIL PANEL ── */
+.detail-panel {
+  max-width: 1400px; margin: 0 auto;
+  padding: 0 40px;
+}
+.detail-inner {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  padding: 20px 24px;
+  display: none;
+  animation: fadeSlide .2s ease;
+}
+.detail-inner.open { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+@keyframes fadeSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+.detail-col-title { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.detail-phase-name { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.detail-owner-tag { font-size: 11px; color: var(--muted); }
+.detail-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.deliverables-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.deliverables-list li { font-size: 11px; color: var(--muted); display: flex; gap: 8px; line-height: 1.5; }
+.deliverables-list li::before {
+  content: '';
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--detail-accent, var(--c-eng));
+  flex-shrink: 0; margin-top: 5px;
+}
+.tip-strip {
+  background: var(--surface2);
+  border-left: 3px solid var(--detail-accent, var(--c-eng));
+  border-radius: 0 6px 6px 0;
+  padding: 12px 14px;
+  font-size: 12px; color: var(--muted); line-height: 1.65;
+  font-style: italic;
+}
+
+/* ── LEGEND ── */
+.legend-bar {
+  max-width: 1400px; margin: 0 auto;
+  padding: 18px 40px 28px;
+  display: flex; flex-wrap: wrap; gap: 18px; align-items: center;
+}
+.leg { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); }
+.leg-swatch { width: 26px; height: 11px; border-radius: 2px; }
+.leg-gate-icon {
+  width: 11px; height: 11px;
+  background: var(--c-gate); border: 1.5px solid #e8b840;
+  border-radius: 1px; transform: rotate(45deg);
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 20px 40px;
+  max-width: 1400px; margin: 0 auto;
+  font-size: 11px; color: var(--faint);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+}
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="header-left">
+    <div class="header-tag">// project timeline</div>
+    <h1>Website build<br><span>Gantt chart</span></h1>
+    <div class="header-meta">Click any bar to see phase details &nbsp;·&nbsp; Gates mark key sign-off milestones</div>
+  </div>
+  <div class="size-switcher">
+    <button class="sz-btn" onclick="setSize('small',this)">Small (3 mo)</button>
+    <button class="sz-btn active" onclick="setSize('medium',this)">Medium (6 mo)</button>
+    <button class="sz-btn" onclick="setSize('large',this)">Large (12 mo)</button>
+  </div>
+</header>
+
+<section class="gantt-section">
+  <div class="gantt-scroll-outer">
+    <div class="gantt-inner" id="gantt-inner"></div>
+  </div>
+</section>
+
+<div class="detail-panel">
+  <div class="detail-inner" id="detail-panel">
+    <div>
+      <div class="detail-col-title">Phase</div>
+      <div class="detail-phase-name" id="dp-name">—</div>
+      <div class="detail-owner-tag" id="dp-owner">—</div>
+      <div style="margin-top:12px;">
+        <div class="detail-col-title">Duration</div>
+        <div class="detail-desc" id="dp-duration">—</div>
+      </div>
+      <div style="margin-top:12px;" class="tip-strip" id="dp-tip">—</div>
+    </div>
+    <div>
+      <div class="detail-col-title">Key deliverables</div>
+      <ul class="deliverables-list" id="dp-deliverables"></ul>
+    </div>
+    <div>
+      <div class="detail-col-title">What to watch out for</div>
+      <div class="detail-desc" id="dp-watch">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="legend-bar">
+  <div class="leg"><span class="leg-swatch" style="background:var(--c-plan)"></span>Planning</div>
+  <div class="leg"><span class="leg-swatch" style="background:var(--c-arch)"></span>Architecture</div>
+  <div class="leg"><span class="leg-swatch" style="background:var(--c-ux)"></span>UX / Design</div>
+  <div class="leg"><span class="leg-swatch" style="background:var(--c-eng)"></span>Engineering</div>
+  <div class="leg"><span class="leg-swatch" style="background:var(--c-qa)"></span>QA</div>
+  <div class="leg"><span class="leg-swatch" style="background:var(--c-hard)"></span>Hardening</div>
+  <div class="leg"><span class="leg-swatch" style="background:var(--c-ops)"></span>Launch / Ops</div>
+  <div class="leg"><span class="leg-gate-icon"></span>Gate / Milestone</div>
+</div>
+
+<footer>
+  <span>Phases overlap intentionally — this is how large teams ship on time.</span>
+  <span>Click any bar or gate for details</span>
+</footer>
+
+<script>
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const SIZES = {
+  small: {
+    weeks: 13,
+    todayWeek: 4,
+    subtitle: '3-month project (small website / MVP)',
+    phases: [
+      { id:'plan',  label:'Discovery & planning', owner:'PM + Stakeholders',   color:'var(--c-plan)',  start:0,  end:3,  gate:{ week:3,  tip:'PRD sign-off' } },
+      { id:'arch',  label:'Architecture',          owner:'Lead architect',       color:'var(--c-arch)',  start:1,  end:4,  gate:null },
+      { id:'ux',    label:'UX / design',           owner:'Design team',          color:'var(--c-ux)',    start:2,  end:7,  gate:{ week:7,  tip:'Design sign-off' } },
+      { id:'eng',   label:'Engineering',           owner:'Dev team',             color:'var(--c-eng)',   start:3,  end:10, gate:null },
+      { id:'qa',    label:'QA & testing',          owner:'QA team',              color:'var(--c-qa)',    start:8,  end:11, gate:{ week:11, tip:'QA sign-off (0 P1 bugs)' } },
+      { id:'hard',  label:'Hardening',             owner:'All teams',            color:'var(--c-hard)',  start:10, end:12, gate:{ week:12, tip:'Code freeze' } },
+      { id:'ops',   label:'Launch & ops',          owner:'DevOps + PM',          color:'var(--c-ops)',   start:12, end:13, gate:{ week:13, tip:'Go-live' } },
+    ]
+  },
+  medium: {
+    weeks: 26,
+    todayWeek: 9,
+    subtitle: '6-month project (full marketing / product site)',
+    phases: [
+      { id:'plan',  label:'Discovery & planning', owner:'PM + Stakeholders',    color:'var(--c-plan)',  start:0,  end:4,  gate:{ week:4,  tip:'PRD + BRD sign-off' } },
+      { id:'arch',  label:'Architecture',          owner:'Lead architect',        color:'var(--c-arch)',  start:2,  end:7,  gate:{ week:7,  tip:'Tech spec approved' } },
+      { id:'ux',    label:'UX / design',           owner:'Design team',           color:'var(--c-ux)',    start:4,  end:12, gate:{ week:12, tip:'Design system complete' } },
+      { id:'eng',   label:'Engineering',           owner:'Frontend + backend',    color:'var(--c-eng)',   start:7,  end:20, gate:null },
+      { id:'qa',    label:'QA & testing',          owner:'QA team',               color:'var(--c-qa)',    start:17, end:23, gate:{ week:23, tip:'QA sign-off (0 P1 bugs)' } },
+      { id:'hard',  label:'Hardening',             owner:'All teams',             color:'var(--c-hard)',  start:21, end:24, gate:{ week:24, tip:'Code freeze' } },
+      { id:'ops',   label:'Launch & ops',          owner:'DevOps + PM',           color:'var(--c-ops)',   start:24, end:26, gate:{ week:26, tip:'Go-live + monitoring' } },
+    ]
+  },
+  large: {
+    weeks: 52,
+    todayWeek: 20,
+    subtitle: '12-month project (enterprise / e-commerce platform)',
+    phases: [
+      { id:'plan',  label:'Discovery & planning',  owner:'PM + Exec sponsors',   color:'var(--c-plan)',  start:0,  end:8,  gate:{ week:8,  tip:'PRD, BRD, roadmap sign-off' } },
+      { id:'arch',  label:'Architecture',           owner:'Principal architects',  color:'var(--c-arch)',  start:4,  end:14, gate:{ week:14, tip:'Architecture review board' } },
+      { id:'ux',    label:'UX / design',            owner:'Design org',            color:'var(--c-ux)',    start:8,  end:24, gate:{ week:24, tip:'Design system v1.0 shipped' } },
+      { id:'eng1',  label:'Engineering — phase 1', owner:'Squads A + B',          color:'var(--c-eng)',   start:14, end:30, gate:{ week:30, tip:'Feature complete (phase 1)' } },
+      { id:'eng2',  label:'Engineering — phase 2', owner:'Squads C + D',          color:'var(--c-eng2)',  start:28, end:44, gate:{ week:44, tip:'Feature complete (phase 2)' } },
+      { id:'qa',    label:'QA & testing',           owner:'QA org',                color:'var(--c-qa)',    start:38, end:48, gate:{ week:48, tip:'QA sign-off' } },
+      { id:'hard',  label:'Hardening',              owner:'All teams',             color:'var(--c-hard)',  start:45, end:50, gate:{ week:50, tip:'Code freeze' } },
+      { id:'ops',   label:'Launch & ops',           owner:'SRE + PM',              color:'var(--c-ops)',   start:50, end:52, gate:{ week:52, tip:'Go-live (canary → 100%)' } },
+    ]
+  }
+};
+
+const PHASE_DETAILS = {
+  plan: {
+    duration: 'Weeks 1–4 (varies by size)',
+    deliverables: ['Product Requirements Document (PRD)','Business Requirements Document (BRD)','Stakeholder sign-off','Project roadmap with milestones','RACI matrix','Risk register v1'],
+    tip: 'This phase is always underestimated. Every week skipped here costs 3× in rework during engineering.',
+    watch: 'Scope creep starts here. Every "small addition" to the PRD adds sprint capacity later. Lock scope aggressively after sign-off and document every change with a decision log.',
+    accent: 'var(--c-plan)'
+  },
+  arch: {
+    duration: 'Overlaps planning by 2 weeks',
+    deliverables: ['System architecture diagram','API contract (versioned endpoints)','Data model + ERD','Tech stack decision doc','Security design doc','Dev environment spec'],
+    tip: 'Architects should read the PRD as it is being written — not after sign-off. This overlap prevents expensive rework when technical constraints surface after decisions are locked.',
+    watch: 'The API contract is the most critical output. If frontend starts building without a frozen API contract, you will lose weeks to integration mismatches mid-sprint.',
+    accent: 'var(--c-arch)'
+  },
+  ux: {
+    duration: 'Starts after PRD is stable',
+    deliverables: ['UX research & personas','User journey maps','Low-fi wireframes','High-fi mockups + prototype','Design system (tokens, components)','Interaction spec (states, dialogs)'],
+    tip: 'Design runs in parallel with architecture. A complete design system before engineering starts saves weeks — retrofitting design tokens into code is expensive and inconsistent.',
+    watch: 'Empty states, error states, and loading states are almost always missing from initial wireframes. Demand a "states matrix" from design before engineering begins.',
+    accent: 'var(--c-ux)'
+  },
+  eng: {
+    duration: 'The longest phase — protect it',
+    deliverables: ['Frontend component library','Backend services + APIs','Database migrations','Third-party integrations','Dev setup documentation','Unit + integration test suite'],
+    tip: 'This is where most projects slip. Common causes: unclear API contract, missing design specs for edge cases, and scope added mid-sprint without removing anything else.',
+    watch: 'Enforce strict sprint entry criteria: a story cannot be started unless its design spec and API contract are both complete. "We will figure it out" always costs more time than waiting for the spec.',
+    accent: 'var(--c-eng)'
+  },
+  eng1: {
+    duration: 'Foundation first — weeks 14–30',
+    deliverables: ['Core platform architecture','Authentication + authorization','Primary user flows','Main database schema','Internal APIs v1','Core frontend components'],
+    tip: 'Phase 1 builds the stable foundation everything else runs on. Rushing this phase to start Phase 2 early is the most common cause of catastrophic rewrites at week 40.',
+    watch: 'Phase 1 must be genuinely stable before Phase 2 squads build on top of it. A shared "foundation health" metric (test coverage, API stability, no open P1 bugs) should gate Phase 2 start.',
+    accent: 'var(--c-eng)'
+  },
+  eng2: {
+    duration: 'Features on stable foundation — weeks 28–44',
+    deliverables: ['Secondary feature set','Admin and ops tooling','Third-party integrations','Performance optimization','Advanced search and filtering','Analytics instrumentation'],
+    tip: 'Phase 2 starts before Phase 1 is complete — squads work on independent features in parallel. This requires a strict API contract and branching strategy to prevent conflicts.',
+    watch: 'The overlap between Phase 1 and Phase 2 is the highest-risk period. Run a shared integration test suite that both squads must keep green. Broken integration tests block all merges.',
+    accent: 'var(--c-eng2)'
+  },
+  qa: {
+    duration: 'Starts 3 weeks before end of engineering',
+    deliverables: ['Test plan document','248 test case executions','Cross-browser test matrix','Accessibility audit (WCAG 2.1 AA)','Performance audit (Core Web Vitals)','Security penetration test','Bug log with P1–P4 classification'],
+    tip: 'QA starts before engineering is "done". Exploratory testing on completed features finds bugs while engineers still have full context. Waiting until feature complete means cold bug fixes.',
+    watch: 'Define your go/no-go criteria before QA begins. "Zero P1, ≤3 P2 with workarounds, 95% test cases passing" removes subjectivity from the launch decision and prevents last-minute politics.',
+    accent: 'var(--c-qa)'
+  },
+  hard: {
+    duration: 'No new features — fixes only',
+    deliverables: ['All P1/P2 bugs resolved','Performance tuning (LCP ≤2.5s)','Security review sign-off','Launch checklist completed','Rollback plan tested','Runbook written and verified'],
+    tip: 'Hardening is a protected phase. If a stakeholder tries to sneak in a feature, the answer is no. Features get added to the next release or the deadline moves.',
+    watch: 'Teams under pressure always try to compress or eliminate hardening. Resist this. The bugs you find in hardening are the ones that would have made the news on launch day.',
+    accent: 'var(--c-hard)'
+  },
+  ops: {
+    duration: 'Staged rollout — canary to 100%',
+    deliverables: ['DNS cutover and SSL verification','Monitoring and alerting live (Datadog/Grafana)','On-call rotation active','Runbook and incident playbook ready','Analytics and tracking verified','Canary release: 1% → 10% → 50% → 100%'],
+    tip: 'Never launch to 100% of traffic instantly. A canary release with monitoring at each step means you catch catastrophic bugs before they affect every user.',
+    watch: 'Full rollback must be executable in under 10 minutes. Test the rollback procedure during the launch rehearsal 1 week before go-live. If you cannot roll back quickly, you are not ready to launch.',
+    accent: 'var(--c-ops)'
+  }
+};
+
+let activePhase = null;
+
+function getColW() {
+  const vw = window.innerWidth;
+  if (vw < 600) return 20;
+  if (vw < 900) return 24;
+  return 28;
+}
+
+function render(sizeKey) {
+  const cfg = SIZES[sizeKey];
+  const colW = getColW();
+  const gantt = document.getElementById('gantt-inner');
+  gantt.innerHTML = '';
+  document.getElementById('detail-panel').classList.remove('open');
+  activePhase = null;
+
+  // Build head row
+  const head = document.createElement('div');
+  head.className = 'g-head';
+  const headLabel = document.createElement('div');
+  headLabel.className = 'g-head-label';
+  headLabel.textContent = cfg.subtitle.split(' (')[0];
+  head.appendChild(headLabel);
+
+  const headCols = document.createElement('div');
+  headCols.className = 'g-head-cols';
+  for (let w = 0; w < cfg.weeks; w++) {
+    const c = document.createElement('div');
+    c.className = 'g-col-header' + (w % 4 === 0 ? ' month-start' : '');
+    c.style.width = colW + 'px';
+    c.style.minWidth = colW + 'px';
+    if (w % 4 === 0) {
+      const mn = document.createElement('span');
+      mn.className = 'month-name';
+      mn.textContent = MONTH_NAMES[Math.floor(w / 4) % 12];
+      c.appendChild(mn);
+    }
+    const wn = document.createElement('span');
+    wn.className = 'week-num';
+    wn.textContent = (w % 4 === 2) ? (w + 1) : '';
+    c.appendChild(wn);
+    headCols.appendChild(c);
+  }
+  head.appendChild(headCols);
+  gantt.appendChild(head);
+
+  // Build rows
+  cfg.phases.forEach(phase => {
+    const row = document.createElement('div');
+    row.className = 'g-row';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'g-label';
+    lbl.innerHTML = `<div class="g-label-name">${phase.label}</div><div class="g-label-owner">${phase.owner}</div>`;
+    row.appendChild(lbl);
+
+    const cells = document.createElement('div');
+    cells.className = 'g-cells';
+    cells.style.height = '62px';
+
+    // Build cells
+    for (let w = 0; w < cfg.weeks; w++) {
+      const cell = document.createElement('div');
+      cell.className = 'g-cell' + (w % 4 === 0 ? ' month-start' : '') + (w === cfg.todayWeek ? ' today-col' : '');
+      cell.style.width = colW + 'px';
+      cell.style.minWidth = colW + 'px';
+      cells.appendChild(cell);
+    }
+
+    // Render bar as a single absolutely-positioned element spanning cells
+    if (phase.end > phase.start) {
+      const barEl = document.createElement('div');
+      barEl.className = 'bar-segment';
+      barEl.style.left = (phase.start * colW) + 'px';
+      barEl.style.width = ((phase.end - phase.start) * colW) + 'px';
+      barEl.style.background = phase.color;
+      const radius = '4px';
+      barEl.style.borderRadius = radius;
+      barEl.style.zIndex = 3;
+
+      const barWidth = (phase.end - phase.start) * colW;
+      if (barWidth > 36) {
+        const txt = document.createElement('span');
+        txt.className = 'bar-text';
+        txt.textContent = phase.label.split(' — ')[0];
+        barEl.appendChild(txt);
+      }
+
+      barEl.addEventListener('click', () => showDetail(phase));
+      cells.appendChild(barEl);
+    }
+
+    // Render gate
+    if (phase.gate) {
+      const gateWeek = phase.gate.week;
+      if (gateWeek <= cfg.weeks) {
+        const gateEl = document.createElement('div');
+        gateEl.className = 'gate-diamond';
+        gateEl.dataset.tip = phase.gate.tip;
+        gateEl.style.left = (gateWeek * colW - colW / 2) + 'px';
+        gateEl.style.zIndex = 10;
+        cells.appendChild(gateEl);
+      }
+    }
+
+    row.appendChild(cells);
+    gantt.appendChild(row);
+  });
+}
+
+function showDetail(phase) {
+  const detailEl = document.getElementById('detail-panel');
+  const details = PHASE_DETAILS[phase.id] || PHASE_DETAILS['eng'];
+
+  if (activePhase === phase.id) {
+    detailEl.classList.remove('open');
+    activePhase = null;
+    return;
+  }
+  activePhase = phase.id;
+
+  document.getElementById('dp-name').textContent = phase.label;
+  document.getElementById('dp-owner').textContent = phase.owner;
+  document.getElementById('dp-duration').textContent = details.duration;
+  document.getElementById('dp-tip').textContent = details.tip;
+  document.getElementById('dp-tip').style.borderLeftColor = details.accent;
+  document.getElementById('dp-watch').textContent = details.watch;
+
+  const dl = document.getElementById('dp-deliverables');
+  dl.innerHTML = '';
+  details.deliverables.forEach(d => {
+    const li = document.createElement('li');
+    li.textContent = d;
+    dl.appendChild(li);
+  });
+  dl.style.setProperty('--detail-accent', details.accent);
+  detailEl.style.setProperty('--detail-accent', details.accent);
+
+  detailEl.classList.add('open');
+  setTimeout(() => detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function setSize(key, btn) {
+  document.querySelectorAll('.sz-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render(key);
+}
+
+render('medium');
+window.addEventListener('resize', () => {
+  const active = document.querySelector('.sz-btn.active');
+  const key = active ? (active.textContent.includes('3') ? 'small' : active.textContent.includes('6') ? 'medium' : 'large') : 'medium';
+  render(key);
+});
+</script>
+</body>
+</html>
